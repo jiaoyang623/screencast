@@ -1,0 +1,15 @@
+# view AndroidManifest.xml #generated:16
+-keep class org.daniel.android.dlna.HomeActivity { <init>(...); }
+
+# onClick res/layout/main.xml #generated:115
+# onClick res/layout/main.xml #generated:14
+# onClick res/layout/main.xml #generated:23
+# onClick res/layout/main.xml #generated:32
+# onClick res/layout/main.xml #generated:41
+# onClick res/layout/main.xml #generated:50
+# onClick res/layout/main.xml #generated:6
+# onClick res/layout/main.xml #generated:70
+# onClick res/layout/main.xml #generated:82
+# onClick res/layout/main.xml #generated:91
+-keepclassmembers class * { *** onClick(...); }
+
