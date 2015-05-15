@@ -7,8 +7,9 @@ import android.util.Log;
 import org.cybergarage.upnp.Device;
 
 /**
+ *
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date May 11 2015 2:13 PM
  */
@@ -35,8 +36,8 @@ public class ThreadRenderController {
 
     private RenderCallback mCallback;
 
-    public ThreadRenderController() {
-        mRenderController = new RenderController();
+    public ThreadRenderController(Device device) {
+        mRenderController = new RenderController(device);
         mControlThread = new Thread() {
             @Override
             public void run() {

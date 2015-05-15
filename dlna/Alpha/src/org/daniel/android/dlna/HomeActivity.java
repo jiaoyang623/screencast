@@ -16,7 +16,7 @@ import org.cybergarage.util.Debug;
 public class HomeActivity extends Activity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, DeviceChangeListener, AdapterView.OnItemClickListener, ThreadRenderController.RenderCallback {
     private DeviceController mDeviceController;
     private ThreadRenderController mRenderController;
-//    private static final String SAMPLE_URL = "http://video19.ifeng.com/video07/2013/11/11/281708-102-007-1138.mp4";
+    //    private static final String SAMPLE_URL = "http://video19.ifeng.com/video07/2013/11/11/281708-102-007-1138.mp4";
     private static final String SAMPLE_URL = "http://10.18.175.68:8080/i/1.mp4";
     private ListView mListView;
     private HomeAdapter mAdapter = new HomeAdapter();
