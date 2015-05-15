@@ -7,6 +7,7 @@ import android.util.Log;
 import org.cybergarage.upnp.Device;
 
 /**
+ * UI线程可直接调用的DLNA控制器，封装线程和数据缓存
  *
  * @author jiaoyang<br>
  *         email: jiaoyang623@qq.com
@@ -15,7 +16,7 @@ import org.cybergarage.upnp.Device;
  */
 public class ThreadRenderController {
     private static final int ACTION_MOCK = -1;
-    private static final int ACTION_SET_DEVICE = 0;
+    private static final int ACTION_INIT_DEVICE = 0;
     private static final int ACTION_SET_DATASOURCE = 1;
     private static final int ACTION_SEEK = 2;
     private static final int ACTION_PLAY = 3;
@@ -23,12 +24,27 @@ public class ThreadRenderController {
     private static final int ACTION_STOP = 5;
     private static final int ACTION_SET_BRIGHTNESS = 6;
     private static final int ACTION_SET_VOLUME = 7;
+    private static final int ACTION_SET_VOLUMEDB = 8;
 
 
     private Thread mControlThread, mRefreshThread;
     private ControllerHandler mControlHandler;
     private RefreshHandler mRefreshHandler;
     private RenderController mRenderController;
+
+    private boolean mIsBrightnessEnabled = false;
+    private boolean mIsVolumeEnabled = false;
+    private boolean mIsVolumeDbEnabled = false;
+    private int mBrightness = 0;
+    private int mVolume = 0;
+    private int mVolumeDb = 0;
+    private int mVolumeDbMin = 0;
+
+    private int mVolumeDbMax = 100;
+
+    private int mLength = 0;
+    private int mPosition = 0;
+    RenderController.PlayerState mState = RenderController.PlayerState.STOPPED;
 
     public void setCallback(RenderCallback callback) {
         mCallback = callback;
@@ -62,10 +78,34 @@ public class ThreadRenderController {
         mRefreshThread.start();
     }
 
-    public void setDevice(Device device) {
-        Message msg = mControlHandler.obtainMessage(ACTION_SET_DEVICE);
-        msg.obj = device;
-        mControlHandler.sendMessage(msg);
+    //工作线程
+    private void initDevice() {
+        //音量
+        mIsVolumeDbEnabled = mRenderController.isVolumeDbEnabled();
+        if (mIsVolumeDbEnabled) {
+            int[] volumeRange = mRenderController.getVolumeDbRange();
+            mVolumeDbMin = volumeRange[0];
+            mVolumeDbMax = volumeRange[1];
+
+            mVolumeDb = mRenderController.getVolumeDb();
+        } else {
+            Log.i("jy", "VolumeDb disabled");
+        }
+
+        mIsVolumeEnabled = mRenderController.isVolumeEnabled();
+        if (mIsVolumeEnabled) {
+            mVolume = mRenderController.getVolume();
+        } else {
+            Log.i("jy", "Volume disabled");
+        }
+        //亮度
+
+        mIsBrightnessEnabled = mRenderController.isBrightnessEnabled();
+        if (mIsBrightnessEnabled) {
+            mBrightness = mRenderController.getBrightness();
+        } else {
+            Log.i("jy", "Brightness disabled");
+        }
     }
 
     public void setDataSource(String uri) {
@@ -73,6 +113,8 @@ public class ThreadRenderController {
         Message msg = mControlHandler.obtainMessage(ACTION_SET_DATASOURCE);
         msg.obj = uri;
         mControlHandler.sendMessage(msg);
+
+        startRefresh();
     }
 
 
@@ -82,7 +124,6 @@ public class ThreadRenderController {
     private void onPrepared() {
         //获取时长
         mRenderController.getPosition();
-        startRefresh();
         if (mCallback != null) {
             UIHandler.getInstance().post(new Runnable() {
                 @Override
@@ -101,14 +142,12 @@ public class ThreadRenderController {
     }
 
     public int getLength() {
-        if (mRenderController.mLength == 0) {
-            startRefresh();
-        }
-        return mRenderController.mLength;
+        return mLength;
     }
 
     public void play() {
         mControlHandler.sendEmptyMessage(ACTION_PLAY);
+        startRefresh();
     }
 
     public void pause() {
@@ -117,23 +156,63 @@ public class ThreadRenderController {
 
     public void stop() {
         mControlHandler.sendEmptyMessage(ACTION_STOP);
+        stopRefresh();
     }
 
     public int getPosition() {
-        return mRenderController.mPosition;
+        return mPosition;
+    }
+
+    public boolean isBrightnessEnabled() {
+        return mIsBrightnessEnabled;
+    }
+
+    public int getBrightness() {
+        return mBrightness;
     }
 
     public void setBrightness(int brightness) {
-        Message msg = mControlHandler.obtainMessage(ACTION_SET_BRIGHTNESS);
-        msg.obj = brightness;
-        mControlHandler.sendMessage(msg);
+        if (mIsBrightnessEnabled) {
+            Message msg = mControlHandler.obtainMessage(ACTION_SET_BRIGHTNESS);
+            msg.obj = brightness;
+            mControlHandler.sendMessage(msg);
+        }
     }
 
+    public int getVolumeDb() {
+        return mVolumeDb;
+    }
+
+    public int getVolumeDbMax() {
+        return mVolumeDbMax;
+    }
+
+    public int getVolumeDbMin() {
+        return mVolumeDbMin;
+    }
+
+    public void setVolumeDb(int volume) {
+        if (mIsVolumeDbEnabled) {
+            Message msg = mControlHandler.obtainMessage(ACTION_SET_VOLUMEDB);
+            msg.obj = volume;
+            mControlHandler.sendMessage(msg);
+        }
+    }
+
+    public int getVolume() {
+        return mVolume;
+    }
 
     public void setVolume(int volume) {
-        Message msg = mControlHandler.obtainMessage(ACTION_SET_VOLUME);
-        msg.obj = volume;
-        mControlHandler.sendMessage(msg);
+        if (mIsVolumeEnabled) {
+            Message msg = mControlHandler.obtainMessage(ACTION_SET_VOLUME);
+            msg.obj = volume;
+            mControlHandler.sendMessage(msg);
+        }
+    }
+
+    public RenderController.PlayerState getState() {
+        return mState;
     }
 
     public void quit() {
@@ -146,8 +225,8 @@ public class ThreadRenderController {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case ACTION_SET_DEVICE:
-                    mRenderController.setDevice((Device) msg.obj);
+                case ACTION_INIT_DEVICE:
+                    initDevice();
                     break;
                 case ACTION_SET_DATASOURCE:
                     mRenderController.setDataSource((String) msg.obj);
@@ -171,15 +250,48 @@ public class ThreadRenderController {
                 case ACTION_SET_VOLUME:
                     mRenderController.setVolume((Integer) msg.obj);
                     break;
+                case ACTION_SET_VOLUMEDB:
+                    mRenderController.setVolumeDb((Integer) msg.obj);
+                    break;
                 case ACTION_MOCK:
                     mRenderController.mock(msg.obj);
             }
         }
     }
 
-    private void startRefresh() {
+    private boolean mNeedRefresh = false;
+
+    private void stopRefresh() {
+        mNeedRefresh = false;
         mRefreshHandler.removeMessages(0);
+    }
+
+    private void startRefresh() {
+        mNeedRefresh = true;
         mRefreshHandler.sendEmptyMessage(0);
+    }
+
+    private void refreshState() {
+        // Position
+        int[] values = mRenderController.getPosition();
+        mPosition = values[0];
+        mLength = values[1];
+
+        // Playing state
+        mState = mRenderController.getState();
+
+        // volume
+        if (mIsVolumeEnabled) {
+            mVolume = mRenderController.getVolume();
+        }
+        if (mIsVolumeDbEnabled) {
+            mVolume = mRenderController.getVolumeDb();
+        }
+
+        // brightness
+        if (mIsBrightnessEnabled) {
+            mBrightness = mRenderController.getBrightness();
+        }
     }
 
     /**
@@ -190,16 +302,19 @@ public class ThreadRenderController {
     private class RefreshHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            mRenderController.refreshState();
-            sendEmptyMessageDelayed(0, REFRESH_INTERVAL);
+            if (mNeedRefresh) {
+                refreshState();
+                removeMessages(0);
+                sendEmptyMessageDelayed(0, REFRESH_INTERVAL);
+            }
         }
     }
 
 
     public void mock(Object obj) {
-//        getPosition();
-        mControlHandler.sendEmptyMessage(ACTION_MOCK);
-
+        Message msg = mControlHandler.obtainMessage(ACTION_MOCK);
+        msg.obj = obj;
+        mControlHandler.sendMessage(msg);
     }
 
     public interface RenderCallback {

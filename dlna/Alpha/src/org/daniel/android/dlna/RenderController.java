@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 封装DLNA的设备控制指令
+ *
  * @author jiaoyang<br>
  *         email: jiaoyang623@qq.com
  * @version 1.0
@@ -21,32 +23,17 @@ public class RenderController {
 
     private Device mDevice = null;
 
-//    private boolean isBrightnessEnabled = false;
-//    private boolean isVolumeEnabled = false;
-//    private boolean isVolumeDbEnabled = false;
-//    private int mBrightness = 0;
-//    private int mVolume = 0;
-//    private int mVolumeDb = 0;
-//    private int mVolumeDbMin = 0;
-//
-//    private int mVolumeDbMax = 100;
-//
-//    int mLength = 0;
-//    int mPosition = 0;
-//    PlayerState mState = PlayerState.Inited;
-//
-//    public enum PlayerState {
-//        Inited, Loading, Playing, Paused, Stopped, Error
-//    }
+    public enum PlayerState {
+        STOPPED, PLAYING, TRANSITIONING, PAUSED_PLAYBACK
+    }
 
     public RenderController(Device device) {
         mDevice = device;
     }
 
-    /**
+    /*
      * Media Control
      */
-
 
     public void setDataSource(String uri) {
         Log.i("jy", "setDataSource() " + uri);
@@ -63,8 +50,6 @@ public class RenderController {
 
 
     public void seek(int position) {
-//        mPosition = position;
-
         String time = getDateStr(position);
 
         Map<String, String> argument = new HashMap<String, String>();
@@ -76,33 +61,6 @@ public class RenderController {
             action("Seek", argument);
         }
     }
-
-//    private List<String> statusSet = Arrays.asList(new String[]{
-//            "STOPPED", "PAUSED_PLAYBACK", "PLAYING", "TRANSITIONING"
-//    });
-//    private PlayerState[] enumSet = {
-//            PlayerState.Stopped, PlayerState.Paused, PlayerState.Playing, PlayerState.Loading
-//    };
-//
-//    protected void refreshState() {
-//        // Position
-//        getPosition();
-//        // Playing state
-//        Action action = action("GetTransportInfo");
-//        String state = action.getArgumentValue("CurrentTransportState");
-//        int index = statusSet.indexOf(state);
-//        if (index >= 0) {
-//            mState = enumSet[index];
-//        } else {
-//            mState = PlayerState.Error;
-//        }
-//        // volume
-//        if(isVolumeEnabled){
-//
-//        }
-//        // brightness
-//
-//    }
 
     /**
      * @return position and length
@@ -125,13 +83,6 @@ public class RenderController {
         return values;
     }
 
-//    public int getLength() {
-//        if (mLength == 0) {
-//            getPosition();
-//        }
-//        return mLength;
-//    }
-
     public void play() {
         Map<String, String> argument = new HashMap<String, String>();
         argument.put("Speed", "1");
@@ -144,6 +95,17 @@ public class RenderController {
 
     public void stop() {
         action("Stop");
+    }
+
+    public PlayerState getState() {
+        Action action = action("GetTransportInfo");
+        String stateStr = action.getArgumentValue("CurrentTransportState");
+        for (PlayerState state : PlayerState.values()) {
+            if (state.toString().equalsIgnoreCase(stateStr)) {
+                return state;
+            }
+        }
+        return PlayerState.STOPPED;
     }
 
     private Action action(String actionName) {
@@ -253,42 +215,10 @@ public class RenderController {
         return String.format("%02d:%02d:%02d", hour, minute, second);
     }
 
-    /**
+    /*
      * Device Control
      */
 
-//    private void initVolume() {
-//        isVolumeDbEnabled = isCtrlEnabled("GetVolume");
-//        if (isVolumeDbEnabled) {
-//            int[] volumeRange = getVolumeDbRange();
-//            mVolumeDbMin = volumeRange[0];
-//            mVolumeDbMax = volumeRange[1];
-//
-//            mVolumeDb = getVolumeDb();
-//        } else {
-//            Log.i("jy", "VolumeDb disabled");
-//        }
-//
-//        isVolumeEnabled = isCtrlEnabled("GetVolumeDB");
-//        if (isVolumeEnabled) {
-//            mVolume = getVolume();
-//        } else {
-//            Log.i("jy", "Volume disabled");
-//        }
-//    }
-
-
-    /**
-     * Brightness is from 0 to 100
-     */
-//    private void initBrightness() {
-//        isBrightnessEnabled = isCtrlEnabled("GetBrightness");
-//        if (isBrightnessEnabled) {
-//            mBrightness = getBrightness();
-//        } else {
-//            Log.i("jy", "Brightness disabled");
-//        }
-//    }
     private int parse(String src, int defaultValue) {
         if (TextUtils.isEmpty(src)) {
             return defaultValue;
@@ -326,10 +256,9 @@ public class RenderController {
         action("SetBrightness", argument);
     }
 
-    /**
+    /*
      * Volume
      */
-
     public boolean isVolumeEnabled() {
         return isCtrlEnabled("GetVolume");
     }
@@ -351,7 +280,7 @@ public class RenderController {
         action("SetVolume", argument);
     }
 
-    /**
+    /*
      * VolumeDB
      */
     public boolean isVolumeDbEnabled() {

@@ -35,8 +35,6 @@ public class HomeActivity extends Activity implements View.OnClickListener, Seek
         mDeviceController = new DeviceController();
         mDeviceController.setOnDeviceChangedListener(this);
 
-        mRenderController = new ThreadRenderController();
-        mRenderController.setCallback(this);
         mPositionbar = (SeekBar) findViewById(R.id.position);
         SeekBar volumebar = (SeekBar) findViewById(R.id.volume);
         SeekBar brightnessbar = (SeekBar) findViewById(R.id.brightness);
@@ -154,7 +152,8 @@ public class HomeActivity extends Activity implements View.OnClickListener, Seek
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Device device = mDeviceController.getDeviceList().get(position);
-        mRenderController.setDevice(device);
+        mRenderController = new ThreadRenderController(device);
+        mRenderController.setCallback(this);
     }
 
     @Override
