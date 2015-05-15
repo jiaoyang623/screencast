@@ -1,45 +1,44 @@
-/******************************************************************
-*
-*	CyberUPnP for Java
-*
-*	Copyright (C) Satoshi Konno 2002
-*
-*	File: ActionList.java
-*
-*	Revision:
-*
-*	12/05/02
-*		- first revision.
-*
-******************************************************************/
+/**
+ * ***************************************************************
+ * <p/>
+ * CyberUPnP for Java
+ * <p/>
+ * Copyright (C) Satoshi Konno 2002
+ * <p/>
+ * File: ActionList.java
+ * <p/>
+ * Revision:
+ * <p/>
+ * 12/05/02
+ * - first revision.
+ * <p/>
+ * ****************************************************************
+ */
 
 package org.cybergarage.upnp;
 
 import java.util.Vector;
 
-public class ActionList extends Vector 
-{
-	////////////////////////////////////////////////
-	//	Constants
-	////////////////////////////////////////////////
-	
-	public final static String ELEM_NAME = "actionList";
+public class ActionList extends Vector<Action> {
+    ////////////////////////////////////////////////
+    //	Constants
+    ////////////////////////////////////////////////
 
-	////////////////////////////////////////////////
-	//	Constructor
-	////////////////////////////////////////////////
-	
-	public ActionList() 
-	{
-	}
-	
-	////////////////////////////////////////////////
-	//	Methods
-	////////////////////////////////////////////////
-	
-	public Action getAction(int n)
-	{
-		return (Action)get(n);
-	}
+    public final static String ELEM_NAME = "actionList";
+
+    ////////////////////////////////////////////////
+    //	Constructor
+    ////////////////////////////////////////////////
+
+    public ActionList() {
+    }
+
+    ////////////////////////////////////////////////
+    //	Methods
+    ////////////////////////////////////////////////
+
+    public Action getAction(int n) {
+        return get(n);
+    }
 }
 
