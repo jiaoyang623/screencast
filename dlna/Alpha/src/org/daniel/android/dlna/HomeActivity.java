@@ -5,10 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.SeekBar;
-import android.widget.Toast;
+import android.widget.*;
 import org.cybergarage.upnp.Device;
 import org.cybergarage.upnp.device.DeviceChangeListener;
 import org.cybergarage.util.Debug;
@@ -20,7 +17,8 @@ public class HomeActivity extends Activity implements View.OnClickListener, Seek
     private static final String SAMPLE_URL = "http://10.18.175.68:8080/i/1.mp4";
     private ListView mListView;
     private HomeAdapter mAdapter = new HomeAdapter();
-    private SeekBar mPositionbar;
+    private SeekBar mPositionbar, mBrightnessbar, mVolumebar;
+    private TextView mVolumeText, mBrightnessText;
 
     /**
      * Called when the activity is first created.
@@ -36,16 +34,18 @@ public class HomeActivity extends Activity implements View.OnClickListener, Seek
         mDeviceController.setOnDeviceChangedListener(this);
 
         mPositionbar = (SeekBar) findViewById(R.id.position);
-        SeekBar volumebar = (SeekBar) findViewById(R.id.volume);
-        SeekBar brightnessbar = (SeekBar) findViewById(R.id.brightness);
+        mVolumebar = (SeekBar) findViewById(R.id.volume);
+        mBrightnessbar = (SeekBar) findViewById(R.id.brightness);
+        mVolumeText = (TextView) findViewById(R.id.volumeText);
+        mBrightnessText = (TextView) findViewById(R.id.brightnessText);
 
         mListView = (ListView) findViewById(R.id.listView);
         mListView.setAdapter(mAdapter);
         mListView.setOnItemClickListener(this);
 
         mPositionbar.setOnSeekBarChangeListener(this);
-        volumebar.setOnSeekBarChangeListener(this);
-        brightnessbar.setOnSeekBarChangeListener(this);
+        mVolumebar.setOnSeekBarChangeListener(this);
+        mBrightnessbar.setOnSeekBarChangeListener(this);
     }
 
     @Override
@@ -152,6 +152,9 @@ public class HomeActivity extends Activity implements View.OnClickListener, Seek
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Device device = mDeviceController.getDeviceList().get(position);
+        if (mRenderController != null) {
+            mRenderController.quit();
+        }
         mRenderController = new ThreadRenderController(device);
         mRenderController.setCallback(this);
     }
@@ -161,6 +164,11 @@ public class HomeActivity extends Activity implements View.OnClickListener, Seek
         mPositionbar.setMax(mRenderController.getLength());
         mPositionRunnable = new PositionRunnable(UIHandler.getInstance());
         UIHandler.getInstance().post(mPositionRunnable);
+    }
+
+    @Override
+    public void onError() {
+        Toast.makeText(this, "DLNA error", Toast.LENGTH_LONG).show();
     }
 
     private PositionRunnable mPositionRunnable;
@@ -177,6 +185,19 @@ public class HomeActivity extends Activity implements View.OnClickListener, Seek
             mPositionbar.setMax(mRenderController.getLength());
             mPositionbar.setProgress(mRenderController.getPosition());
 //            Log.i("jy", "position: " + mRenderController.getPosition() + " / " + mRenderController.getLength());
+            if (mRenderController.isBrightnessEnabled()) {
+                mBrightnessbar.setProgress(mRenderController.getBrightness());
+                mBrightnessText.setText("Brightness(enabled)");
+            } else {
+                mBrightnessText.setText("Brightness(disabled)");
+            }
+            if (mRenderController.isVolumeEnabled()) {
+                mVolumebar.setProgress(mRenderController.getVolume());
+                mVolumeText.setText("Volume(enabled)");
+            } else {
+                mVolumeText.setText("Volume(disabled)");
+            }
+            mVolumebar.setProgress(mRenderController.getVolume());
             handler.removeCallbacks(this);
             handler.postDelayed(this, 1000);
         }

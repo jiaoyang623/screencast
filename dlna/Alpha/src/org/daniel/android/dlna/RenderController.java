@@ -35,7 +35,7 @@ public class RenderController {
      * Media Control
      */
 
-    public void setDataSource(String uri) {
+    public void setDataSource(String uri) throws ServiceException {
         Log.i("jy", "setDataSource() " + uri);
         if (TextUtils.isEmpty(uri)) {
             Log.i("jy", "uri is empty");
@@ -49,7 +49,7 @@ public class RenderController {
     }
 
 
-    public void seek(int position) {
+    public void seek(int position) throws ServiceException {
         String time = getDateStr(position);
 
         Map<String, String> argument = new HashMap<String, String>();
@@ -65,7 +65,7 @@ public class RenderController {
     /**
      * @return position and length
      */
-    public int[] getPosition() {
+    public int[] getPosition() throws ServiceException {
         int[] values = {0, 0};
         Action action = action("GetPositionInfo");
         if (action != null) {
@@ -83,49 +83,51 @@ public class RenderController {
         return values;
     }
 
-    public void play() {
+    public void play() throws ServiceException {
         Map<String, String> argument = new HashMap<String, String>();
         argument.put("Speed", "1");
         action("Play", argument);
     }
 
-    public void pause() {
+    public void pause() throws ServiceException {
         action("Pause");
     }
 
-    public void stop() {
+    public void stop() throws ServiceException {
         action("Stop");
     }
 
-    public PlayerState getState() {
+    public PlayerState getState() throws ServiceException {
         Action action = action("GetTransportInfo");
         String stateStr = action.getArgumentValue("CurrentTransportState");
-        for (PlayerState state : PlayerState.values()) {
-            if (state.toString().equalsIgnoreCase(stateStr)) {
-                return state;
+        if (!TextUtils.isEmpty(stateStr)) {
+            for (PlayerState state : PlayerState.values()) {
+                if (state.toString().equalsIgnoreCase(stateStr)) {
+                    return state;
+                }
             }
         }
         return PlayerState.STOPPED;
     }
 
-    private Action action(String actionName) {
+    private Action action(String actionName) throws ServiceException {
         return action(actionName, null);
     }
 
-    private Action action(String actionName, Map<String, String> arguments) {
+    private Action action(String actionName, Map<String, String> arguments) throws ServiceException {
         return action(AVTransport1, actionName, arguments);
     }
 
-    private Action actionCtrl(String actionName) {
+    private Action actionCtrl(String actionName) throws ServiceException {
         return action(RenderingControl, actionName, null);
     }
 
-    private Action actionCtrl(String actionName, Map<String, String> arguments) {
+    private Action actionCtrl(String actionName, Map<String, String> arguments) throws ServiceException {
         return action(RenderingControl, actionName, arguments);
     }
 
-    private Action action(String serviceName, String actionName, Map<String, String> arguments) {
-        boolean log = !"GetPositionInfo".equals(actionName) && !"GetTransportInfo".equals(actionName);
+    private Action action(String serviceName, String actionName, Map<String, String> arguments) throws ServiceException {
+        boolean log = true;
 //        boolean log = true;
         if (log) {
             Log.i("jy", "action(" + actionName + ")");
@@ -133,14 +135,12 @@ public class RenderController {
         Service service = mDevice.getService(serviceName);
 
         if (service == null) {
-            Log.w("jy", actionName + ".service is null");
-            return null;
+            throw new ServiceException("no service " + actionName);
         }
 
         final Action action = service.getAction(actionName);
         if (action == null) {
-            Log.w("jy", actionName + ".action is null");
-            return null;
+            throw new ServiceException("no action " + actionName);
         }
 
         //设置参数
@@ -160,28 +160,28 @@ public class RenderController {
             return action;
         } else {
             Log.w("jy", actionName + ".postControlAction() return null");
-            return null;
+            throw new ServiceException("action return null " + actionName);
         }
     }
 
 
     public void mock(Object obj) {
-        Service service = mDevice.getService(RenderingControl);
+//        Service service = mDevice.getService(RenderingControl);
+//
+//        if (service == null) {
+//            Log.w("jy", "mock.service is null");
+//            return;
+//        }
+//
+//        for (Object obja : service.getActionList()) {
+//            Action action = (Action) obja;
+//            Log.i("jy", "actions: " + action.getName());
+//        }
 
-        if (service == null) {
-            Log.w("jy", "mock.service is null");
-            return;
-        }
-
-        for (Object obja : service.getActionList()) {
-            Action action = (Action) obja;
-            Log.i("jy", "actions: " + action.getName());
-        }
-
-        String[] ctrlSet = new String[]{"GetBrightness", "GetVolume", "GetVolumeDB", "GetVolumeDBRange"};
-        for (String action : ctrlSet) {
-            action(RenderingControl, action, null);
-        }
+//        String[] ctrlSet = new String[]{"GetBrightness", "GetVolume", "GetVolumeDB", "GetVolumeDBRange"};
+//        for (String action : ctrlSet) {
+//            action(RenderingControl, action, null);
+//        }
     }
 
     private static int getTimestamp(String str) {
@@ -241,13 +241,13 @@ public class RenderController {
         return isCtrlEnabled("GetBrightness");
     }
 
-    public int getBrightness() {
+    public int getBrightness() throws ServiceException {
         Log.i("jy", "getBrightness()");
         Action action = actionCtrl("GetBrightness");
         return action == null ? 0 : parse(action.getArgumentValue("CurrentBrightness"), 0);
     }
 
-    public void setBrightness(int brightness) {
+    public void setBrightness(int brightness) throws ServiceException {
         Log.i("jy", "setBrightness() " + brightness);
 
         Map<String, String> argument = new HashMap<String, String>();
@@ -263,7 +263,7 @@ public class RenderController {
         return isCtrlEnabled("GetVolume");
     }
 
-    public int getVolume() {
+    public int getVolume() throws ServiceException {
         Log.i("jy", "getVolume()");
         Map<String, String> argument = new HashMap<String, String>();
         argument.put("Channel", "Master");
@@ -272,7 +272,7 @@ public class RenderController {
         return action == null ? 0 : parse(action.getArgumentValue("CurrentVolume"), 0);
     }
 
-    public void setVolume(int volume) {
+    public void setVolume(int volume) throws ServiceException {
         Map<String, String> argument = new HashMap<String, String>();
         argument.put("Channel", "Master");
         argument.put("DesiredVolume", String.valueOf(volume));
@@ -287,7 +287,7 @@ public class RenderController {
         return isCtrlEnabled("GetVolumeDB");
     }
 
-    public int[] getVolumeDbRange() {
+    public int[] getVolumeDbRange() throws ServiceException {
         int[] values = {0, 0};
         Map<String, String> arguments = new HashMap<String, String>();
         arguments.put("Channel", "Master");
@@ -304,7 +304,7 @@ public class RenderController {
         return values;
     }
 
-    public int getVolumeDb() {
+    public int getVolumeDb() throws ServiceException {
         Log.i("jy", "getVolumeDb()");
         Map<String, String> argument = new HashMap<String, String>();
         argument.put("Channel", "Master");
@@ -313,7 +313,7 @@ public class RenderController {
         return action == null ? 0 : parse(action.getArgumentValue("CurrentVolume"), 0);
     }
 
-    public void setVolumeDb(int volumeDb) {
+    public void setVolumeDb(int volumeDb) throws ServiceException {
         Map<String, String> argument = new HashMap<String, String>();
         argument.put("Channel", "Master");
         argument.put("DesiredVolume", String.valueOf(volumeDb));

@@ -79,7 +79,7 @@ public class ThreadRenderController {
     }
 
     //工作线程
-    private void initDevice() {
+    private void initDevice() throws ServiceException {
         //音量
         mIsVolumeDbEnabled = mRenderController.isVolumeDbEnabled();
         if (mIsVolumeDbEnabled) {
@@ -121,7 +121,7 @@ public class ThreadRenderController {
     /**
      * 完成内容设置，可以直接播放
      */
-    private void onPrepared() {
+    private void onPrepared() throws ServiceException {
         //获取时长
         mRenderController.getPosition();
         if (mCallback != null) {
@@ -179,6 +179,10 @@ public class ThreadRenderController {
         }
     }
 
+    public boolean isVolumeDbEnabled() {
+        return mIsVolumeDbEnabled;
+    }
+
     public int getVolumeDb() {
         return mVolumeDb;
     }
@@ -197,6 +201,10 @@ public class ThreadRenderController {
             msg.obj = volume;
             mControlHandler.sendMessage(msg);
         }
+    }
+
+    public boolean isVolumeEnabled() {
+        return mIsVolumeEnabled;
     }
 
     public int getVolume() {
@@ -224,37 +232,42 @@ public class ThreadRenderController {
     private class ControllerHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case ACTION_INIT_DEVICE:
-                    initDevice();
-                    break;
-                case ACTION_SET_DATASOURCE:
-                    mRenderController.setDataSource((String) msg.obj);
-                    onPrepared();
-                    break;
-                case ACTION_SEEK:
-                    mRenderController.seek((Integer) msg.obj);
-                    break;
-                case ACTION_PLAY:
-                    mRenderController.play();
-                    break;
-                case ACTION_PAUSE:
-                    mRenderController.pause();
-                    break;
-                case ACTION_STOP:
-                    mRenderController.stop();
-                    break;
-                case ACTION_SET_BRIGHTNESS:
-                    mRenderController.setBrightness((Integer) msg.obj);
-                    break;
-                case ACTION_SET_VOLUME:
-                    mRenderController.setVolume((Integer) msg.obj);
-                    break;
-                case ACTION_SET_VOLUMEDB:
-                    mRenderController.setVolumeDb((Integer) msg.obj);
-                    break;
-                case ACTION_MOCK:
-                    mRenderController.mock(msg.obj);
+            try {
+                switch (msg.what) {
+                    case ACTION_INIT_DEVICE:
+                        initDevice();
+                        break;
+                    case ACTION_SET_DATASOURCE:
+                        mRenderController.setDataSource((String) msg.obj);
+                        onPrepared();
+                        break;
+                    case ACTION_SEEK:
+                        mRenderController.seek((Integer) msg.obj);
+                        break;
+                    case ACTION_PLAY:
+                        mRenderController.play();
+                        break;
+                    case ACTION_PAUSE:
+                        mRenderController.pause();
+                        break;
+                    case ACTION_STOP:
+                        mRenderController.stop();
+                        break;
+                    case ACTION_SET_BRIGHTNESS:
+                        mRenderController.setBrightness((Integer) msg.obj);
+                        break;
+                    case ACTION_SET_VOLUME:
+                        mRenderController.setVolume((Integer) msg.obj);
+                        break;
+                    case ACTION_SET_VOLUMEDB:
+                        mRenderController.setVolumeDb((Integer) msg.obj);
+                        break;
+                    case ACTION_MOCK:
+                        mRenderController.mock(msg.obj);
+                }
+            } catch (ServiceException e) {
+                e.printStackTrace();
+                postError();
             }
         }
     }
@@ -271,7 +284,7 @@ public class ThreadRenderController {
         mRefreshHandler.sendEmptyMessage(0);
     }
 
-    private void refreshState() {
+    private void refreshState() throws ServiceException {
         // Position
         int[] values = mRenderController.getPosition();
         mPosition = values[0];
@@ -302,11 +315,27 @@ public class ThreadRenderController {
     private class RefreshHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            if (mNeedRefresh) {
-                refreshState();
-                removeMessages(0);
-                sendEmptyMessageDelayed(0, REFRESH_INTERVAL);
+            try {
+                if (mNeedRefresh) {
+                    refreshState();
+                    removeMessages(0);
+                    sendEmptyMessageDelayed(0, REFRESH_INTERVAL);
+                }
+            } catch (ServiceException e) {
+                e.printStackTrace();
+                postError();
             }
+        }
+    }
+
+    private void postError() {
+        if (mCallback != null) {
+            UIHandler.getInstance().post(new Runnable() {
+                @Override
+                public void run() {
+                    mCallback.onError();
+                }
+            });
         }
     }
 
@@ -319,5 +348,7 @@ public class ThreadRenderController {
 
     public interface RenderCallback {
         void onPrepared();
+
+        void onError();
     }
 }
