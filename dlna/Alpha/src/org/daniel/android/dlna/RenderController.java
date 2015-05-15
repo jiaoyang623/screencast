@@ -17,12 +17,18 @@ import java.util.Map;
  * @version 1.0
  * @date May 11 2015 11:05 AM
  */
-public class RenderController implements IRenderController {
+public class RenderController {
     private static final String AVTransport1 = "urn:schemas-upnp-org:service:AVTransport:1";
     private static final String RenderingControl = "urn:schemas-upnp-org:service:RenderingControl:1";
 
-    private int mVolumeMin = 0;
-    private int mVolumeMax = 100;
+    private boolean isBrightnessEnabled = false;
+    private boolean isVolumeEnabled = false;
+    private boolean isVolumeDbEnabled = false;
+    private int mBrightness = 0;
+    private int mVolume = 0;
+    private int mVolumeDb = 0;
+    private int mVolumeDbMin = 0;
+    private int mVolumeDbMax = 100;
 
     private Device mDevice = null;
 
@@ -34,7 +40,6 @@ public class RenderController implements IRenderController {
         Inited, Loading, Playing, Paused, Stopped, Error
     }
 
-    @Override
     public void setDevice(Device device) {
         Log.i("jy", "setDevice() ");
 
@@ -48,7 +53,6 @@ public class RenderController implements IRenderController {
      */
 
 
-    @Override
     public void setDataSource(String uri) {
         Log.i("jy", "setDataSource() " + uri);
         if (TextUtils.isEmpty(uri)) {
@@ -63,7 +67,6 @@ public class RenderController implements IRenderController {
     }
 
 
-    @Override
     public void seek(int position) {
         mPosition = position;
 
@@ -87,7 +90,9 @@ public class RenderController implements IRenderController {
     };
 
     protected void refreshState() {
+        // Position
         getPosition();
+        // Playing state
         Action action = action("GetTransportInfo");
         String state = action.getArgumentValue("CurrentTransportState");
         int index = statusSet.indexOf(state);
@@ -96,9 +101,14 @@ public class RenderController implements IRenderController {
         } else {
             mState = PlayerState.Error;
         }
+        // volume
+        if(isVolumeEnabled){
+
+        }
+        // brightness
+
     }
 
-    @Override
     public int getPosition() {
         Action action = action("GetPositionInfo");
         if (action != null) {
@@ -118,7 +128,6 @@ public class RenderController implements IRenderController {
         }
     }
 
-    @Override
     public int getLength() {
         if (mLength == 0) {
             getPosition();
@@ -126,19 +135,16 @@ public class RenderController implements IRenderController {
         return mLength;
     }
 
-    @Override
     public void play() {
         Map<String, String> argument = new HashMap<String, String>();
         argument.put("Speed", "1");
         action("Play", argument);
     }
 
-    @Override
     public void pause() {
         action("Pause");
     }
 
-    @Override
     public void stop() {
         action("Stop");
     }
@@ -149,6 +155,14 @@ public class RenderController implements IRenderController {
 
     private Action action(String actionName, Map<String, String> arguments) {
         return action(AVTransport1, actionName, arguments);
+    }
+
+    private Action actionCtrl(String actionName) {
+        return action(RenderingControl, actionName, null);
+    }
+
+    private Action actionCtrl(String actionName, Map<String, String> arguments) {
+        return action(RenderingControl, actionName, arguments);
     }
 
     private Action action(String serviceName, String actionName, Map<String, String> arguments) {
@@ -192,7 +206,6 @@ public class RenderController implements IRenderController {
     }
 
 
-    @Override
     public void mock(Object obj) {
         Service service = mDevice.getService(RenderingControl);
 
@@ -248,31 +261,35 @@ public class RenderController implements IRenderController {
      */
 
     private void initVolume() {
-        Map<String, String> arguments = new HashMap<String, String>();
-        arguments.put("Channel", "Master");
+        isVolumeDbEnabled = isCtrlEnabled("GetVolume");
+        if (isVolumeDbEnabled) {
+            int[] volumeRange = getVolumeDbRange();
+            mVolumeDbMin = volumeRange[0];
+            mVolumeDbMax = volumeRange[1];
 
-        Action action = action(RenderingControl, "GetVolumeDBRange", arguments);
-        if (action != null) {
-            mVolumeMin = parse(action.getArgumentValue("MinValue"), 0);
-            mVolumeMax = parse(action.getArgumentValue("MaxValue"), 100);
-            Log.i("jy", String.format("initVolume: [%d, %d]", mVolumeMin, mVolumeMax));
+            mVolumeDb = getVolumeDb();
         } else {
-            Log.w("jy", "initVolume.action.postControlAction() is null");
+            Log.i("jy", "VolumeDb disabled");
+        }
+
+        isVolumeEnabled = isCtrlEnabled("GetVolumeDB");
+        if (isVolumeEnabled) {
+            mVolume = getVolume();
+        } else {
+            Log.i("jy", "Volume disabled");
         }
     }
+
 
     /**
      * Brightness is from 0 to 100
      */
     private void initBrightness() {
-        Map<String, String> arguments = new HashMap<String, String>();
-
-        Action action = action(RenderingControl, "GetBrightness", arguments);
-        if (action != null) {
-            String brightness = action.getArgumentValue("CurrentBrightness");
-            Log.i("jy", "Brightness: " + brightness);
+        isBrightnessEnabled = isCtrlEnabled("GetBrightness");
+        if (isBrightnessEnabled) {
+            mBrightness = getBrightness();
         } else {
-            Log.w("jy", "initVolume.action.postControlAction() is null");
+            Log.i("jy", "Brightness disabled");
         }
     }
 
@@ -284,27 +301,47 @@ public class RenderController implements IRenderController {
         }
     }
 
-    @Override
+    private boolean isCtrlEnabled(String actionName) {
+        Service service = mDevice.getService(RenderingControl);
+
+        if (service == null) {
+            Log.w("jy", actionName + ".service is null");
+            return false;
+        }
+        return service.getAction(actionName) != null;
+    }
+
+    public boolean isBrightnessEnabled() {
+        return isBrightnessEnabled;
+    }
+
     public int getBrightness() {
         Log.i("jy", "getBrightness()");
-
-        return 0;
+        Action action = actionCtrl("GetBrightness");
+        return action == null ? 0 : parse(action.getArgumentValue("CurrentBrightness"), 0);
     }
 
-    @Override
     public void setBrightness(int brightness) {
         Log.i("jy", "setBrightness() " + brightness);
-
     }
 
-    @Override
+    /**
+     * Volume
+     */
+
+    public boolean isVolumeEnabled() {
+        return isVolumeEnabled;
+    }
+
     public int getVolume() {
         Log.i("jy", "getVolume()");
+        Map<String, String> argument = new HashMap<String, String>();
+        argument.put("Channel", "Master");
+        Action action = action("GetVolume", argument);
 
-        return 0;
+        return action == null ? 0 : parse(action.getArgumentValue("CurrentVolume"), 0);
     }
 
-    @Override
     public void setVolume(int volume) {
         Map<String, String> argument = new HashMap<String, String>();
         argument.put("Channel", "Master");
@@ -312,4 +349,46 @@ public class RenderController implements IRenderController {
 
         action("SetVolume", argument);
     }
+
+    /**
+     * VolumeDB
+     */
+    public boolean isVolumeDbEnabled() {
+        return isVolumeDbEnabled;
+    }
+
+    public int[] getVolumeDbRange() {
+        int[] values = {0, 0};
+        Map<String, String> arguments = new HashMap<String, String>();
+        arguments.put("Channel", "Master");
+
+        Action action = actionCtrl("GetVolumeDBRange", arguments);
+        if (action != null) {
+            values[0] = parse(action.getArgumentValue("MinValue"), 0);
+            values[1] = parse(action.getArgumentValue("MaxValue"), 100);
+            Log.i("jy", String.format("initVolume: [%d, %d]", mVolumeDbMin, mVolumeDbMax));
+        } else {
+            Log.w("jy", "initVolume.action.postControlAction() is null");
+        }
+
+        return values;
+    }
+
+    public int getVolumeDb() {
+        Log.i("jy", "getVolumeDb()");
+        Map<String, String> argument = new HashMap<String, String>();
+        argument.put("Channel", "Master");
+        Action action = action("GetVolumeDB", argument);
+
+        return action == null ? 0 : parse(action.getArgumentValue("CurrentVolume"), 0);
+    }
+
+    public void setVolumeDb(int volumeDb) {
+        Map<String, String> argument = new HashMap<String, String>();
+        argument.put("Channel", "Master");
+        argument.put("DesiredVolume", String.valueOf(volumeDb));
+
+        action("SetVolumeDb", argument);
+    }
+
 }

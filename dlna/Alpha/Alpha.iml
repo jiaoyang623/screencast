@@ -4,12 +4,6 @@
     <facet type="android" name="Android">
       <configuration />
     </facet>
-    <facet type="android" name="Android">
-      <configuration />
-    </facet>
-    <facet type="android" name="Android">
-      <configuration />
-    </facet>
   </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
@@ -19,6 +13,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="CyberGarage" exported="" />
+    <orderEntry type="module" module-name="CyberGarage" />
   </component>
 </module>
