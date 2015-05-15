@@ -58,7 +58,9 @@ public class RenderController {
 
         if (action("Seek", argument) == null) {
             argument.put("Unit", "REL_TIME");
-            action("Seek", argument);
+            if (action("Seek", argument) == null) {
+                throw new ServiceException("Seek failed");
+            }
         }
     }
 
@@ -166,33 +168,16 @@ public class RenderController {
 
 
     public void mock(Object obj) {
-//        Service service = mDevice.getService(RenderingControl);
-//
-//        if (service == null) {
-//            Log.w("jy", "mock.service is null");
-//            return;
-//        }
-//
-//        for (Object obja : service.getActionList()) {
-//            Action action = (Action) obja;
-//            Log.i("jy", "actions: " + action.getName());
-//        }
 
-//        String[] ctrlSet = new String[]{"GetBrightness", "GetVolume", "GetVolumeDB", "GetVolumeDBRange"};
-//        for (String action : ctrlSet) {
-//            action(RenderingControl, action, null);
-//        }
     }
 
+
     private static int getTimestamp(String str) {
-        if (TextUtils.isEmpty(str)) {
+        if (TextUtils.isEmpty(str) || !str.matches("[0-9]+(:[0-9]{2}){2}")) {
             return 0;
         }
 
         String[] segment = str.split(":");
-        if (segment.length != 3) {
-            return 0;
-        }
 
         int hour = Integer.parseInt(segment[0]);
         int minute = Integer.parseInt(segment[1]);
@@ -220,7 +205,7 @@ public class RenderController {
      */
 
     private int parse(String src, int defaultValue) {
-        if (TextUtils.isEmpty(src)) {
+        if (TextUtils.isEmpty(src) || !src.matches("[0-9]+")) {
             return defaultValue;
         } else {
             return Integer.parseInt(src);
