@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Bravo" default="help">
+<project name="BravoTest" default="help">
 
     <!-- The local.properties file is created and updated by the 'android' tool.
          It contains the path to the SDK. It should *NOT* be checked into
@@ -26,7 +26,7 @@
          application and should be checked into Version Control Systems.
 
          -->
-    <property file="libs/ant.properties" />
+    <property file="ant.properties" />
 
     <!-- if sdk.dir was not set from one of the property file, then
          get it from the ANDROID_HOME env var.
