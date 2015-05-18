@@ -1,0 +1,6 @@
+*.class
+.idea/
+dlna/Alpha/gen/
+dlna/CyberGarage/gen/
+out/
+
