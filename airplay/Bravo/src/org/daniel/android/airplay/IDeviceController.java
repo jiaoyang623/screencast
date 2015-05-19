@@ -1,5 +1,9 @@
 package org.daniel.android.airplay;
 
+import android.content.Context;
+
+import javax.jmdns.ServiceInfo;
+
 /**
  * @author jiaoyang<br>
  *         email: jiaoyang623@qq.com
@@ -7,13 +11,15 @@ package org.daniel.android.airplay;
  * @date May 18 2015 2:25 PM
  */
 public interface IDeviceController {
-    void scan();
+    void scan(Context context);
 
     void stopScan();
 
-    interface DeviceListener {
-        void onDeviceAdded(AirPlayDevice device);
+    void setDeviceListener(DeviceListener listener);
 
-        void onDeviceRemoved(AirPlayDevice device);
+    interface DeviceListener {
+        void onDeviceAdded(ServiceInfo info);
+
+        void onDeviceRemoved(ServiceInfo info);
     }
 }

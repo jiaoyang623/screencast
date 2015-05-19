@@ -5,9 +5,13 @@ import android.util.Log;
 import org.daniel.android.airplay.protocol.PlaybackInfoBean;
 import org.daniel.android.airplay.protocol.ServerInfoBean;
 
+import java.net.ConnectException;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date May 19 2015 9:52 AM
  */
@@ -17,15 +21,15 @@ public class RenderControllerTestCase extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Log.i("jy", "setup");
-        mController = new RenderController();
-        super.setUp();
+        if (mController == null) {
+            Log.i("jy", "setup");
+            mController = new RenderController(DeviceControllerTestCase.getServiceInfo(getContext()));
+        }
     }
 
     @Override
     protected void tearDown() throws Exception {
         Log.i("jy", "teardown");
-        super.tearDown();
     }
 
     public void testPlay() throws Exception {
@@ -82,5 +86,37 @@ public class RenderControllerTestCase extends AndroidTestCase {
         assertNotNull(bean.seekableTimeRanges);
         assertTrue(bean.rate >= 0);
         assertTrue(bean.rate <= 1);
+    }
+
+    public void testRequest() throws Exception {
+        Map<String, String> mapGet = new HashMap<>();
+        Map<String, String> mapPost = new HashMap<>();
+
+        mapGet.put("abc", "def");
+        String content = mController.request("http://www.baidu.com", mapGet, mapPost);
+        Log.i("jy", content);
+
+        mapGet.put("haha", null);
+        mapPost.put("where", null);
+        content = mController.request("http://www.baidu.com", mapGet, mapPost);
+        Log.i("jy", content);
+
+        try {
+            mController.request("127.0.0.1", null, null);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            mController.request("http://127.0.0.1", null, null);
+        } catch (ConnectException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            mController.request(null, null, null);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
     }
 }
