@@ -32,7 +32,7 @@ public class HomeActivityTest extends ActivityInstrumentationTestCase2<HomeActiv
         InputStream is = null;
         InputStreamReader reader = null;
         try {
-            is = OneApp.INSTANCE.getAssets().open("server-info.plist");
+            is = getActivity().getAssets().open("server-info.plist");
             reader = new InputStreamReader(is);
             char[] buffer = new char[1024];
             StringBuilder builder = new StringBuilder();

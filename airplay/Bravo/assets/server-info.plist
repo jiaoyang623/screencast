@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+		"http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>deviceid</key>
+		<string>58:55:CA:1A:E2:88</string>
+		<key>features</key>
+		<integer>14839</integer>
+		<key>model</key>
+		<string>AppleTV2,1</string>
+		<key>protovers</key>
+		<string>1.0</string>
+		<key>srcvers</key>
+		<string>120.2</string>
+	</dict>
+</plist>

@@ -166,21 +166,25 @@ public class Dict extends PListObject {
      *            dictionary.
      * @return The Integer value of the specified key.
      */
-    public Array getConfigurationArray(java.lang.String key) {
+    public Array getArray(java.lang.String key) {
         return (Array) getConfigurationObject(key);
     }
 
 
-    public java.lang.String getConfigurationString(java.lang.String key) {
+    public java.lang.String getString(java.lang.String key) {
         return ((String) getConfigurationObject(key)).getValue();
     }
 
 
-    public int getConfigurationInt(java.lang.String key) {
+    public int getInteger(java.lang.String key) {
         return ((Integer) getConfigurationObject(key)).getValue();
     }
 
-    public boolean getConfigurationBoolean(java.lang.String key) {
+    public float getFloat(java.lang.String key) {
+        return ((Real) getConfigurationObject(key)).getValue();
+    }
+
+    public boolean getBoolean(java.lang.String key) {
         PListObject obj = getConfigurationObject(key);
         switch (obj.getType()) {
             case TRUE:
@@ -190,6 +194,10 @@ public class Dict extends PListObject {
             default:
                 throw new ClassCastException(obj.getType() + ", is not boolean");
         }
+    }
+
+    public boolean contains(java.lang.String key) {
+        return getConfigurationObject(key) != null;
     }
 
     /*

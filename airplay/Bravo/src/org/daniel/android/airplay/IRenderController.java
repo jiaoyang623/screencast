@@ -1,6 +1,7 @@
 package org.daniel.android.airplay;
 
-import java.net.URL;
+import org.daniel.android.airplay.protocol.PlaybackInfoBean;
+import org.daniel.android.airplay.protocol.ServerInfoBean;
 
 /**
  * @author jiaoyang<br>
@@ -9,14 +10,19 @@ import java.net.URL;
  * @date May 18 2015 2:26 PM
  */
 public interface IRenderController {
-    void play(URL url);
+    void play(String url);
 
-    void rate(int rate);
+    /**
+     * from 0 to 1
+     */
+    void rate(float rate);
 
-    void seek(int position);
+    void seek(float position);
 
     void stop();
 
-    void getInfo();
+    ServerInfoBean getServerInfo();
+
+    PlaybackInfoBean getPlayInfo();
 
 }
