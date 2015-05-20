@@ -1,11 +1,9 @@
 package org.daniel.android.miracast;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.Display;
 import android.view.View;
-import org.daniel.android.miracast.switcher.MiraDiscoverActivity;
 import org.daniel.android.miracast.utils.PresentationHelper;
 
 public class MainActivity extends Activity implements PresentationHelper.Listener, View.OnClickListener {
@@ -29,10 +27,6 @@ public class MainActivity extends Activity implements PresentationHelper.Listene
             break;
             case R.id.stop: {
                 preso.stop();
-            }
-            break;
-            case R.id.discover: {
-                startActivity(new Intent(this, MiraDiscoverActivity.class));
             }
             break;
             default:
