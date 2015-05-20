@@ -13,7 +13,11 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author jiaoyang<br>
@@ -29,36 +33,124 @@ public class RenderController implements IRenderController {
     }
 
     @Override
-    public void play(String url) {
+    public void play(String url, float position) throws IOException {
+        Map<String, String> params = new HashMap<>();
+        params.put("Content-Location", url);
+        params.put("Start-Position", String.valueOf(position));
+        String result = post(mInfo.getURL() + "/play", null, params);
+        Log.i("jy", "play result: " + result);
+    }
 
+    /**
+     * 协议失效
+     */
+    @Deprecated
+    @Override
+    public void rate(float rate) throws IOException {
+        Map<String, String> params = new HashMap<>();
+        params.put("rate", String.format("%.7f", rate));
+        String result = post(mInfo.getURL() + "/rate", params, null);
+        Log.i("jy", "rate result: " + result);
+    }
+
+    /**
+     * 协议失效
+     */
+    @Deprecated
+    @Override
+    public void seek(float position) throws IOException {
+        Map<String, String> params = new HashMap<>();
+        params.put("position", String.format("%.7f", position));
+        String result = post(mInfo.getURL() + "/scrub", params, null);
+        Log.i("jy", "seek result: " + result);
     }
 
     @Override
-    public void rate(float rate) {
-
+    public void stop() throws IOException {
+        String result = post(mInfo.getURL() + "/stop", null, null);
+        Log.i("jy", "stop result: " + result);
     }
 
+    /**
+     * 协议失效
+     */
+    @Deprecated
     @Override
-    public void seek(float position) {
+    public ServerInfoBean getServerInfo() throws IOException {
+        String result = get(mInfo.getURL() + "/server-info", null);
+        ServerInfoBean bean = ServerInfoBean.parse(PListUtils.parse(result));
 
+        return bean;
     }
 
+    /**
+     * 协议失效
+     */
+    @Deprecated
     @Override
-    public void stop() {
+    public PlaybackInfoBean getPlayInfo() throws IOException {
+        String result = get(mInfo.getURL() + "/playback-info", null);
+        Log.i("jy", "playback-info: " + result);
+        PlaybackInfoBean bean = PlaybackInfoBean.parse(PListUtils.parse(result));
 
+        return bean;
     }
 
+    /**
+     * 协议失效
+     */
+    @Deprecated
     @Override
-    public ServerInfoBean getServerInfo() {
-        return null;
+    public float[] getProgress() throws IOException {
+        String result = get(mInfo.getURL() + "/scrub", null);
+
+        return getPosition(result);
     }
 
-    @Override
-    public PlaybackInfoBean getPlayInfo() {
-        return null;
+
+    public float[] getPosition(String content) {
+        float[] values = {0f, 0f};
+        if (content == null || content.length() == 0) {
+            return values;
+        }
+        String[] lines = content.split("\n");
+        for (String line : lines) {
+            if (line.contains("duration")) {
+                values[1] = peekFloat(line);
+            } else if (line.contains("position")) {
+                values[0] = peekFloat(line);
+            }
+        }
+
+        return values;
     }
 
-    String request(String uri, Map<String, String> paramsGet, Map<String, String> paramsPost) throws IOException {
+    private final Pattern mFloatPattern = Pattern.compile("-?[\\.\\d]+");
+
+    public float peekFloat(String content) {
+        if (content == null || content.length() == 0) {
+            return 0;
+        }
+
+        Matcher m = mFloatPattern.matcher(content);
+        if (m.find()) {
+            String num = m.group(0);
+            return Float.valueOf(num);
+        } else {
+            return 0;
+        }
+    }
+
+
+    private String get(String uri, Map<String, String> params) throws IOException {
+        return request("GET", uri, params, null);
+    }
+
+    private String post(String uri, Map<String, String> paramsGet, Map<String, String> paramsPost) throws IOException {
+        return request("POST", uri, paramsGet, paramsPost);
+    }
+
+    String request(String method, String uri, Map<String, String> paramsGet, Map<String, String> paramsPost) throws IOException {
         if (uri == null) {
             throw new IllegalArgumentException("Uri: " + uri);
         }
@@ -83,9 +175,11 @@ public class RenderController implements IRenderController {
         conn.setDoOutput(true);
         conn.setConnectTimeout(15 * 1000);
         conn.setReadTimeout(15 * 1000);
-        conn.setRequestMethod("POST");
+        conn.setRequestMethod(method);
         conn.setRequestProperty("Content-Length", "" + content.length());
         conn.setRequestProperty("Content-Type", "text/parameters");
+        conn.setRequestProperty("X-Apple-AssetKey", UUID.randomUUID().toString());
+        conn.setRequestProperty("X-Apple-Session-ID", UUID.randomUUID().toString());
         conn.setRequestProperty("User-Agent", "MediaControl/1.0");
         BufferedOutputStream out = null;
         InputStream is = null;
@@ -97,7 +191,7 @@ public class RenderController implements IRenderController {
             int status = conn.getResponseCode();
             if (status == 200) {
                 byte[] buffer = new byte[256];
-                int count = 0;
+                int count;
                 is = conn.getInputStream();
                 while ((count = is.read(buffer)) != -1) {
                     result.append(new String(buffer, 0, count));
