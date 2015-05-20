@@ -4,7 +4,7 @@ import android.util.Log;
 
 /**
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date Apr 09 2015 11:31 AM
  */

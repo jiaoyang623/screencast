@@ -5,5 +5,6 @@ dlna/Alpha/gen/
 dlna/CyberGarage/gen/
 airplay/Bravo/gen/
 airplay/PlistParser/gen
+miracast/MiraTango/gen
 out/
 

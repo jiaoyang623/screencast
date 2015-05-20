@@ -6,7 +6,7 @@ import android.view.Display;
 
 /**
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date Apr 29 2015 3:49 PM
  */

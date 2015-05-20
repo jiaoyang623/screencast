@@ -10,7 +10,7 @@ import java.net.SocketException;
 
 /**
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date May 19 2015 2:33 PM
  */

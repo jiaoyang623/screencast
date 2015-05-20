@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
  * DisplayManager包装类，通过反射的方式调用受保护方法
  *
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date Apr 09 2015 5:46 PM
  */

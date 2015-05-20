@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 
 /**
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date May 18 2015 5:31 PM
  */

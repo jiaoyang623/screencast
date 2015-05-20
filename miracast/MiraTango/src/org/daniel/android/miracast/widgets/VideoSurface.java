@@ -11,7 +11,7 @@ import java.io.IOException;
 
 /**
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date Apr 09 2015 3:03 PM
  */
