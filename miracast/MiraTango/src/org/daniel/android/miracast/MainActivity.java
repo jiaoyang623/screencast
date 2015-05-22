@@ -1,76 +1,68 @@
 package org.daniel.android.miracast;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.view.Display;
+import android.os.IBinder;
 import android.view.View;
-import org.daniel.android.miracast.utils.PresentationHelper;
+import android.widget.TextView;
 
-public class MainActivity extends Activity implements PresentationHelper.Listener, View.OnClickListener {
-    private PresentationHelper mPresentationHelper;
-    private SamplePresentationFragment preso = null;
+public class MainActivity extends Activity implements View.OnClickListener, MiracastController.MiracastListener {
+    private TextView mStatusText;
+    private MiracastService mService;
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mService = ((MiracastService.MiraBinder) service).getService();
+            mService.setMiracastListener(MainActivity.this);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        mStatusText = (TextView) findViewById(R.id.status);
+        bindService(new Intent(getApplicationContext(), MiracastService.class), mConnection, BIND_AUTO_CREATE);
+    }
 
-        mPresentationHelper = new PresentationHelper(getApplicationContext(), this);
+    @Override
+    protected void onDestroy() {
+        unbindService(mConnection);
+        super.onDestroy();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.start: {
-                preso.start("/sdcard/test.mp4");
-            }
-            break;
-            case R.id.stop: {
-                preso.stop();
-            }
-            break;
-            default:
+            case R.id.start:
+                if (mService != null) {
+                    mService.start();
+                }
+                break;
+            case R.id.stop:
+                if (mService != null) {
+                    mService.stop();
+                }
+                break;
         }
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mPresentationHelper.onResume();
-//        mVideoView.start();
+    public void onShow() {
+        mStatusText.setText("onShow");
     }
 
     @Override
-    public void onPause() {
-        mPresentationHelper.onPause();
-        super.onPause();
-//        mVideoView.stopPlayback();
+    public void onDismissed() {
+        mStatusText.setText("onDismissed");
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    public void clearPreso(boolean switchToInline) {
-        System.out.println("clear Presentation");
-        if (preso != null) {
-            preso.dismiss();
-            preso = null;
-        }
-    }
-
-    @Override
-    public void showPreso(Display display) {
-        System.out.println("show Presentation");
-        preso = buildPreso(display);
-        preso.show(getFragmentManager(), "preso");
-    }
-
-    private SamplePresentationFragment buildPreso(Display display) {
-        return (SamplePresentationFragment.newInstance(this, display,
-                "http://www.baidu.com"));
-    }
-
 }

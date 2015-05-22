@@ -4,32 +4,27 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
 		>
-	<LinearLayout
-			android:id="@+id/control"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content">
-		<Button
-				android:id="@+id/start"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="start"
-				android:onClick="onClick"
-				/>
-		<Button
-				android:id="@+id/stop"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="stop"
-				android:onClick="onClick"
-				/>
-		<Button
-				android:id="@+id/discover"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="discover"
-				android:onClick="onClick"
-				/>
-	</LinearLayout>
+	<Button
+			android:id="@+id/start"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="startDisplay"
+			android:onClick="onClick"
+			/>
+	<Button
+			android:id="@+id/stop"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="stopDisplay"
+			android:onClick="onClick"
+			android:layout_alignParentTop="true"
+			android:layout_toEndOf="@+id/start"
+			/>
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="status"
+			android:id="@+id/status" android:layout_below="@+id/start" android:layout_alignParentStart="true"/>
 
 </RelativeLayout>
 
