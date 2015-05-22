@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.TextView;
 
 public class MainActivity extends Activity implements View.OnClickListener, MiracastController.MiracastListener {
@@ -45,6 +46,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Mira
         switch (v.getId()) {
             case R.id.start:
                 if (mService != null) {
+                    mService.setView(new DatePicker(getApplicationContext()));
                     mService.start();
                 }
                 break;
@@ -52,6 +54,8 @@ public class MainActivity extends Activity implements View.OnClickListener, Mira
                 if (mService != null) {
                     mService.stop();
                 }
+                break;
+            case R.id.small:
                 break;
         }
     }

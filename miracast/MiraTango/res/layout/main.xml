@@ -25,6 +25,15 @@
 			android:layout_height="wrap_content"
 			android:text="status"
 			android:id="@+id/status" android:layout_below="@+id/start" android:layout_alignParentStart="true"/>
+	<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="small"
+			android:id="@+id/small"
+			android:layout_alignBottom="@+id/stop"
+			android:layout_alignParentEnd="true"
+			android:onClick="onClick"
+			/>
 
 </RelativeLayout>
 

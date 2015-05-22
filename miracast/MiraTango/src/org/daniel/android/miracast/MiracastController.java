@@ -1,16 +1,11 @@
 package org.daniel.android.miracast;
 
 import android.app.Activity;
-import android.app.Presentation;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.media.MediaRouter;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.AnalogClock;
 
 /**
  * 用于Miracast的生命周期控制和事件分发
@@ -37,31 +32,9 @@ public class MiracastController {
      * mPresentation 为null，则不在播放
      * 不为null，则上一个状态是在播放
      */
-    private PlayerPresentation mPresentation;
+//    private PlayerPresentation mPresentation;
+    private WindowController mPresentation;
     private MiracastListener mListener;
-    /**
-     * Listens for when presentations are dismissed.
-     */
-    private final DialogInterface.OnDismissListener mOnDismissListener =
-            new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    if (dialog == mPresentation) {
-                        Log.i(TAG, "Presentation was dismissed.");
-                        updateContents();
-                    }
-                }
-            };
-    private final DialogInterface.OnShowListener mOnShowListener =
-            new DialogInterface.OnShowListener() {
-                @Override
-                public void onShow(DialogInterface dialog) {
-                    if (dialog == mPresentation) {
-                        Log.i(TAG, "Presentation was shown.");
-                        updateContents();
-                    }
-                }
-            };
     private final MediaRouter.SimpleCallback mMediaRouterCallback =
             new MediaRouter.SimpleCallback() {
                 @Override
@@ -145,22 +118,17 @@ public class MiracastController {
         // 正在播放，调用停止或者屏幕变化时，停止播放
         if (mPresentation != null && (!mEnabled || mPresentation.getDisplay() != presentationDisplay)) {
             Log.i(TAG, "清除显示");
-            mPresentation.dismiss();
+            mPresentation.removeView(mContentView);
             mPresentation = null;
+            updateContents();
         }
 
         // 显示播放器
         if (mPresentation == null && mEnabled && presentationDisplay != null) {
             Log.i(TAG, "显示: " + presentationDisplay);
-            mPresentation = new PlayerPresentation(mContext, presentationDisplay);
-            mPresentation.setOnDismissListener(mOnDismissListener);
-            mPresentation.setOnShowListener(mOnShowListener);
-            try {
-                mPresentation.show();
-            } catch (WindowManager.InvalidDisplayException ex) {
-                ex.printStackTrace();
-                mPresentation = null;
-            }
+            mPresentation = new WindowController(mContext, presentationDisplay);
+            mPresentation.addView(mContentView);
+            updateContents();
         }
     }
 
@@ -196,16 +164,4 @@ public class MiracastController {
     }
 
 
-    private class PlayerPresentation extends Presentation {
-
-        public PlayerPresentation(Context outerContext, Display display) {
-            super(outerContext, display);
-        }
-
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setContentView(new AnalogClock(getContext()));
-        }
-    }
 }

@@ -4,8 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
-import android.widget.AnalogClock;
+import android.view.View;
 
 /**
  * @author jiaoyang<br>
@@ -25,8 +24,6 @@ public class MiracastService extends Service {
     public void onCreate() {
         super.onCreate();
         mController = new MiracastController(getApplicationContext());
-        AnalogClock clock = new AnalogClock(getApplicationContext());
-        mController.setContentView(clock);
     }
 
     public void start() {
@@ -37,9 +34,12 @@ public class MiracastService extends Service {
         mController.stop();
     }
 
+    public void setView(View view) {
+        mController.setContentView(view);
+    }
+
     public void setMiracastListener(MiracastController.MiracastListener listener) {
         mController.setListener(listener);
-
     }
 
     public class MiraBinder extends Binder {
