@@ -8,6 +8,7 @@
 	<!-- Miracast配置 -->
 	<uses-permission android:name="android.permission.CONFIGURE_WIFI_DISPLAY"/>
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
 
 	<uses-sdk android:minSdkVersion="17"
 	          android:targetSdkVersion="22"/>

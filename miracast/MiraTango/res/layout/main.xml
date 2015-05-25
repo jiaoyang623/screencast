@@ -5,34 +5,69 @@
                 android:layout_height="fill_parent"
 		>
 	<Button
-			android:id="@+id/start"
+			android:id="@+id/startDisplay"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="startDisplay"
 			android:onClick="onClick"
 			/>
 	<Button
-			android:id="@+id/stop"
+			android:id="@+id/stopDisplay"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="stopDisplay"
 			android:onClick="onClick"
 			android:layout_alignParentTop="true"
-			android:layout_toEndOf="@+id/start"
+			android:layout_toEndOf="@+id/startDisplay"
 			/>
 	<TextView
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="status"
-			android:id="@+id/status" android:layout_below="@+id/start" android:layout_alignParentStart="true"/>
+			android:id="@+id/status"
+			android:layout_alignParentBottom="true"
+			android:layout_alignParentStart="true"/>
+	/>
 	<Button
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="small"
-			android:id="@+id/small"
-			android:layout_alignBottom="@+id/stop"
-			android:layout_alignParentEnd="true"
+			android:text="setData"
 			android:onClick="onClick"
+			android:id="@+id/setData"
+			android:layout_below="@+id/startDisplay"
+			android:layout_alignParentStart="true"/>
+	<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="play"
+			android:onClick="onClick"
+			android:id="@+id/play"
+			android:layout_below="@+id/startDisplay"
+			android:layout_toEndOf="@+id/setData"/>
+	<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="pause"
+			android:onClick="onClick"
+			android:id="@+id/pause"
+			android:layout_below="@+id/stopDisplay"
+			android:layout_toEndOf="@+id/play"/>
+	<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="stop"
+			android:onClick="onClick"
+			android:id="@+id/stop"
+			android:layout_below="@+id/stopDisplay"
+			android:layout_toEndOf="@+id/pause"/>
+	<SeekBar
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:onClick="onClick"
+			android:id="@+id/seekBar"
+			android:layout_below="@+id/setData"
+			android:layout_alignParentStart="true"
+			android:layout_alignParentEnd="true"
 			/>
 
 </RelativeLayout>

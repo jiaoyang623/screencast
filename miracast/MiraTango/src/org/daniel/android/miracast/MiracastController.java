@@ -2,6 +2,7 @@ package org.daniel.android.miracast;
 
 import android.app.Activity;
 import android.content.Context;
+import android.hardware.display.DisplayManager;
 import android.media.MediaRouter;
 import android.util.Log;
 import android.view.Display;
@@ -26,6 +27,7 @@ public class MiracastController {
 
     private Context mContext;
     private MediaRouter mMediaRouter;
+    private DisplayManager mDisplayManager;
     private View mContentView;
     private boolean mEnabled = true;
     /**
@@ -35,26 +37,45 @@ public class MiracastController {
 //    private PlayerPresentation mPresentation;
     private WindowController mPresentation;
     private MiracastListener mListener;
-    private final MediaRouter.SimpleCallback mMediaRouterCallback =
-            new MediaRouter.SimpleCallback() {
-                @Override
-                public void onRouteSelected(MediaRouter router, int type, MediaRouter.RouteInfo info) {
-                    Log.d(TAG, "onRouteSelected: type=" + type + ", info=" + info);
-                    updatePresentation();
-                }
+    private final MediaRouter.SimpleCallback mMediaRouterCallback = new MediaRouter.SimpleCallback() {
+        @Override
+        public void onRouteSelected(MediaRouter router, int type, MediaRouter.RouteInfo info) {
+            Log.d(TAG, "onRouteSelected: type=" + type + ", info=" + info);
+            updatePresentation();
+        }
 
-                @Override
-                public void onRouteUnselected(MediaRouter router, int type, MediaRouter.RouteInfo info) {
-                    Log.d(TAG, "onRouteUnselected: type=" + type + ", info=" + info);
-                    updatePresentation();
-                }
+        @Override
+        public void onRouteUnselected(MediaRouter router, int type, MediaRouter.RouteInfo info) {
+            Log.d(TAG, "onRouteUnselected: type=" + type + ", info=" + info);
+            updatePresentation();
+        }
 
-                @Override
-                public void onRoutePresentationDisplayChanged(MediaRouter router, MediaRouter.RouteInfo info) {
-                    Log.d(TAG, "onRoutePresentationDisplayChanged: info=" + info);
-                    updatePresentation();
-                }
-            };
+        @Override
+        public void onRoutePresentationDisplayChanged(MediaRouter router, MediaRouter.RouteInfo info) {
+            Log.d(TAG, "onRoutePresentationDisplayChanged: info=" + info);
+            updatePresentation();
+        }
+    };
+
+    private final DisplayManager.DisplayListener mDisplayListener = new DisplayManager.DisplayListener() {
+        @Override
+        public void onDisplayAdded(int displayId) {
+            Log.d(TAG, "onDisplayAdded: id=" + displayId);
+            updatePresentation();
+        }
+
+        @Override
+        public void onDisplayRemoved(int displayId) {
+            Log.d(TAG, "onDisplayRemoved: id=" + displayId);
+            updatePresentation();
+        }
+
+        @Override
+        public void onDisplayChanged(int displayId) {
+            Log.d(TAG, "onDisplayChanged: id=" + displayId);
+            updatePresentation();
+        }
+    };
 
     public MiracastController(Context context) {
         if (context == null || context instanceof Activity) {
@@ -62,6 +83,7 @@ public class MiracastController {
         }
         mContext = context;
         mMediaRouter = (MediaRouter) context.getSystemService(Context.MEDIA_ROUTER_SERVICE);
+        mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
         mContentView = new View(context);
     }
 
@@ -71,6 +93,7 @@ public class MiracastController {
     public void start() {
         mEnabled = true;
         mMediaRouter.addCallback(MediaRouter.ROUTE_TYPE_LIVE_VIDEO, mMediaRouterCallback);
+        mDisplayManager.registerDisplayListener(mDisplayListener, null);
         updatePresentation();
     }
 
@@ -84,6 +107,7 @@ public class MiracastController {
     public void stop() {
         mEnabled = false;
         mMediaRouter.removeCallback(mMediaRouterCallback);
+        mDisplayManager.unregisterDisplayListener(mDisplayListener);
         updatePresentation();
     }
 
@@ -120,7 +144,9 @@ public class MiracastController {
             Log.i(TAG, "清除显示");
             mPresentation.removeView(mContentView);
             mPresentation = null;
-            updateContents();
+            if (mListener != null) {
+                mListener.onDismissed();
+            }
         }
 
         // 显示播放器
@@ -128,27 +154,8 @@ public class MiracastController {
             Log.i(TAG, "显示: " + presentationDisplay);
             mPresentation = new WindowController(mContext, presentationDisplay);
             mPresentation.addView(mContentView);
-            updateContents();
-        }
-    }
-
-    /**
-     * @test <br>
-     * 1. mPresentation为null，调用停止
-     * 2. mPresentation不为null，调用播放
-     */
-    private void updateContents() {
-        // Show either the content in the main activity or the content in the presentation
-        // along with some descriptive text about what is happening.
-        if (mListener != null) {
-            if (mPresentation != null) {
-                // show presentation
-                //会调用多遍吗？
+            if (mListener != null) {
                 mListener.onShow();
-            } else {
-                // clear hide presentation
-                //会调用多遍吗？
-                mListener.onDismissed();
             }
         }
     }
