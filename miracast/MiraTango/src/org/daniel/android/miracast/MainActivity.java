@@ -15,6 +15,7 @@ import org.daniel.android.miracast.player.DemoSurfaceView;
 import java.io.IOException;
 
 public class MainActivity extends Activity implements View.OnClickListener, MiracastController.MiracastListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, SeekBar.OnSeekBarChangeListener {
+    public static final String ACTION_WIFI_DISPLAY_SETTINGS = "android.settings.WIFI_DISPLAY_SETTINGS";
     private TextView mStatusText;
     private MiracastService mService;
     private DemoSurfaceView mSurfaceView;
@@ -95,6 +96,11 @@ public class MainActivity extends Activity implements View.OnClickListener, Mira
                 case R.id.stop:
                     mMediaPlayer.stop();
                     mHandler.removeMessages(0);
+                    break;
+                case R.id.settings:
+                    Intent intent = new Intent(ACTION_WIFI_DISPLAY_SETTINGS);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
                     break;
             }
         } catch (IOException e) {
