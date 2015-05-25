@@ -34,7 +34,6 @@ public class MiracastController {
      * mPresentation 为null，则不在播放
      * 不为null，则上一个状态是在播放
      */
-//    private PlayerPresentation mPresentation;
     private WindowController mPresentation;
     private MiracastListener mListener;
     private final MediaRouter.SimpleCallback mMediaRouterCallback = new MediaRouter.SimpleCallback() {
@@ -85,6 +84,7 @@ public class MiracastController {
         mMediaRouter = (MediaRouter) context.getSystemService(Context.MEDIA_ROUTER_SERVICE);
         mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
         mContentView = new View(context);
+        mPresentation = null;
     }
 
     /**
@@ -140,7 +140,7 @@ public class MiracastController {
         Display presentationDisplay = route != null ? route.getPresentationDisplay() : null;
 
         // 正在播放，调用停止或者屏幕变化时，停止播放
-        if (mPresentation != null && (!mEnabled || mPresentation.getDisplay() != presentationDisplay)) {
+        if (mPresentation != null && !(mEnabled && mPresentation.getDisplay() == presentationDisplay)) {
             Log.i(TAG, "清除显示");
             mPresentation.removeView(mContentView);
             mPresentation = null;

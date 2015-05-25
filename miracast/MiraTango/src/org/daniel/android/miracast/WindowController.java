@@ -11,7 +11,7 @@ import android.view.WindowManager;
  * 用于控制Miracast显示窗体，支持从Service中进行投屏
  *
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date May 22 2015 5:00 PM
  */

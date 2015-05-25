@@ -8,7 +8,7 @@ import android.view.View;
 
 /**
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date May 21 2015 3:44 PM
  */

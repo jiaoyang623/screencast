@@ -9,7 +9,7 @@ import android.view.SurfaceView;
 
 /**
  * @author jiaoyang<br>
- *         email: jiaoyang@360.cn
+ *         email: jiaoyang623@qq.com
  * @version 1.0
  * @date May 22 2015 5:45 PM
  */
