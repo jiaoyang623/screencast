@@ -29,13 +29,14 @@ public class MiracastController {
     private MediaRouter mMediaRouter;
     private DisplayManager mDisplayManager;
     private View mContentView;
-    private boolean mEnabled = true;
+    private boolean mEnabled = false;
     /**
      * mPresentation 为null，则不在播放
      * 不为null，则上一个状态是在播放
      */
     private WindowController mPresentation;
     private MiracastListener mListener;
+
     private final MediaRouter.SimpleCallback mMediaRouterCallback = new MediaRouter.SimpleCallback() {
         @Override
         public void onRouteSelected(MediaRouter router, int type, MediaRouter.RouteInfo info) {
@@ -84,6 +85,7 @@ public class MiracastController {
         mMediaRouter = (MediaRouter) context.getSystemService(Context.MEDIA_ROUTER_SERVICE);
         mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
         mContentView = new View(context);
+        mEnabled = false;
         mPresentation = null;
     }
 
@@ -112,10 +114,19 @@ public class MiracastController {
     }
 
     /**
-     * 设置绘屏
+     * 设置绘屏<br/>
+     * 1. set之后会不会马上刷新屏幕？切换到当前View<br/>
+     * 2. set null的时候，会不会马上把正在显示的View删除？
      */
     public void setContentView(View contentView) {
-        mContentView = contentView;
+        //TODO
+        if (mContentView != contentView) {
+            if (mPresentation != null) {
+                mPresentation.removeView(mContentView);
+                mPresentation.addView(contentView);
+            }
+            mContentView = contentView;
+        }
     }
 
     /**
@@ -160,6 +171,10 @@ public class MiracastController {
         }
     }
 
+    /**
+     * 1. set空之后回怎么样？<br/>
+     * 2. 替换对象回怎么样？<br/>
+     */
     public void setListener(MiracastListener listener) {
         mListener = listener;
     }
